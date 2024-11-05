@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
+import Todos from '../src/components/Todos';
+
 
 const TodoList = () => {
   const navigate = useNavigate();
+  const [Text,setText] = useState("");
+  const [TotalTodo,setTotalTodo] = useState([]);
+
+  useEffect(()=>{
+    const DataFetch = async ( )=>{
+      try {
+        const res2 = await axios.post('http://localhost:5000/user/todolistAdd', { Text }, { withCredentials: true });
+        if(res2.data.subTodo) setTotalTodo(res2.data.subTodo)
+      } catch (error) {
+        console.error("TodoList error:", error);
+      }
+    }
+    DataFetch();
+  },[])
 
   const handleLogOut = async () => {
     try {
-        const res = await axios.post('http://localhost:3000/user/logout');
+        const res = await axios.post('http://localhost:5000/user/logout',{},{ withCredentials: true });
         console.log(res.data);
         if (res.data.logout) {
             navigate('/');
@@ -16,6 +32,26 @@ const TodoList = () => {
         console.error("Logout error:", error);
     }
 };
+  const handleAddTodo = async () =>{
+    try {
+      const res2 = await axios.post('http://localhost:5000/user/todolistAdd', { Text }, { withCredentials: true });
+      if(res2.data.subTodo) setTotalTodo(res2.data.subTodo)
+      setText("")
+    } catch (error) {
+      console.error("TodoListAdd error:", error);
+    }
+  }
+  
+  const handleDelete = async (TodoId) =>{
+      try {
+
+        const res = await axios.post('http://localhost:5000/user/todolistDelete',{TodoId},{ withCredentials: true })
+        if(res.data.subTodo) setTotalTodo(res.data.subTodo)
+
+      } catch (error) {
+        console.error("TodoListDelete error:", error);
+      }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6 relative">
@@ -33,18 +69,22 @@ const TodoList = () => {
         {/* Input to add a new todo */}
         <div className="mb-4">
           <input
+          value={Text}
+            onChange={(e)=>setText(e.target.value)}
             type="text"
             placeholder="Add new todo"
             className="w-full p-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <button className="mt-2 w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">
+          <button 
+            onClick={handleAddTodo}
+            className="mt-2 w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">
             Add Todo
           </button>
         </div>
 
         {/* Pending Todos count */}
         <p className="text-gray-700 mb-4">
-          Pending Todos: <span className="font-bold">3</span>
+          Pending Todos: <span className="font-bold">{TotalTodo.length}</span>
         </p>
 
         {/* Todo Filter Buttons */}
@@ -52,32 +92,13 @@ const TodoList = () => {
           <button className="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">
             All Todos
           </button>
-          <button className="bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600">
-            Active Todos
-          </button>
-          <button className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">
-            Done Todos
-          </button>
+          
         </div>
-
-        {/* Todo list */}
-        <ul className="space-y-3">
-          <li className="flex justify-between items-center bg-gray-100 p-3 rounded-md">
-            <span className="text-gray-900">Todo 1</span>
-            <div className="space-x-2">
-              <button className="text-blue-500 hover:text-blue-600">Edit</button>
-              <button className="text-red-500 hover:text-red-600">Delete</button>
-            </div>
-          </li>
-          <li className="flex justify-between items-center bg-gray-100 p-3 rounded-md">
-            <span className="text-gray-900">Todo 2</span>
-            <div className="space-x-2">
-              <button className="text-blue-500 hover:text-blue-600">Edit</button>
-              <button className="text-red-500 hover:text-red-600">Delete</button>
-            </div>
-          </li>
-          {/* More todos can be added here */}
-        </ul>
+        {
+          TotalTodo.map((item, index) => (
+            <Todos keys={index} text={item} handleDelete={handleDelete}/> 
+          ))
+        }
       </div>
     </div>
   );

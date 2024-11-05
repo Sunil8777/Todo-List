@@ -22,13 +22,13 @@ const SignUp = async (req,res)=>{
     const {email,password} = req.body;
 
     if(!email || !password){
-        return res.status(400).json("email and password are require")
+        return res.status(400).json({invalid:true,message:"Invalid email and password required"})
     }
 
     const isUserAvailable = await User.findOne({email});
 
     if(isUserAvailable){
-        return res.status(400).json("User already exist");
+        return res.status(400).json({invalid:true,message:"User already exist"});
     }
 
     await User.create({
@@ -36,7 +36,7 @@ const SignUp = async (req,res)=>{
         password,
     })
 
-    return res.status(200).json("user created successfully");
+    return res.status(200).json({invalid:false,message:"User created successfully"});
 }
 
 const logIn = async (req,res)=>{
@@ -44,16 +44,18 @@ const logIn = async (req,res)=>{
     const {email,password} = req.body;
 
     if(!email ||!password){
-        return res.status(400).json("email and password both are required ");
+        return res.status(400).json({invalid:true,message:"email and password both are required "});
     }
+
     const user = await User.findOne({email});
+    
     if(!user){
-        return res.status(404).json("user not found")
+        return res.status(404).json({invalid:true,message:"user not found"})
     }
-    const isPasswordValid = user.isPasswordCorrect(password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
     
     if(!isPasswordValid){
-        return res.status(400).json("password is incorrect")
+        return res.status(400).json({invalid:true,message:"email or password is incorrect"})
     }
 
     const {accessToken,refreshToken} = await genrateAccessAndRefresh(user);
@@ -62,7 +64,6 @@ const logIn = async (req,res)=>{
     const options ={
         httpOnly: true,
         secure: true,
-       
     }
 
     console.log(accessToken);
@@ -78,7 +79,7 @@ const logIn = async (req,res)=>{
 }
 
 const logout = async (req,res)=>{
-    console.log(req);
+    console.log(req.user);
     await User.findByIdAndUpdate(req.user?._id,
         {
             $set:{

@@ -3,13 +3,11 @@ import { User } from './user.model.js';
 
 const jwtVerification = async (req,res,next) =>{
     try {
-        const token = req.cookies.accessToken|| req.header("authorization")?.replace("Bearer ", "");
-        console.log("Token:", token);
+        const token = req.cookies.accessToken || req.header("authorization")?.replace("Bearer ", "");
         if(!token){
             throw new Error("anauthorized request");
         }
         const decoded = jwt.verify(token,process.env.SECRET_KEY);
-        console.log(decoded);
         const user = await User.findById(decoded?._id).select("-password -refreshToken");
 
         if(!user){

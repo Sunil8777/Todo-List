@@ -1,28 +1,36 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useAsyncError, useNavigate } from 'react-router-dom';
 import axios from 'axios'
+import Validation from '../src/components/validation';
 
-const SignIn = () => {
+const SignIn = (props) => {
 
   const [email,setEmail]= useState(null);
   const [password,setPassword]= useState(null);
+  const [data,setdata] = useState(null);
   const navigate = useNavigate();
 
   const handleSignIn = async (e) =>{
     e.preventDefault();
     
     try {
-      const res = await axios.post('http://localhost:3000/user/signin',{
+      const res = await axios.post('http://localhost:5000/user/signin',{
         email: email,
         password: password
-      })
+      },{ withCredentials: true })
       console.log(document.cookie)
       if(res.data.loginAccess){
         navigate('/todolist')
+        props.onSignIn()
       }
+      setdata(res.data)
     } catch (error) {
-      console.log(error);
-    }
+        if (error.response) {
+          setdata(error.response.data) 
+        } else {
+          console.error("Request failed:", error.message);
+        }
+  }
   }
   return (
     <div>
@@ -35,11 +43,11 @@ const SignIn = () => {
           <form>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">
-                Email
+              Username
               </label>
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your Username"
                 onChange={(e)=>setEmail(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -56,6 +64,8 @@ const SignIn = () => {
                 className="w-full px-3 py-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
+            <Validation data={data}/>
 
             <div className="mb-4 flex justify-between items-center">
               <button onClick={handleSignIn} className="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none">

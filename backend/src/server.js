@@ -9,9 +9,8 @@ dotenv.config({
 const startServer = async () => {
     try {
         await connectToDb();
-        app.listen(process.env.PORT, () => {
-            
-            console.log("Server is running on port 3000");
+        app.listen(process.env.PORT, ()=> {
+            console.log("Server is running on port 5000");
         });
     } catch (error) {
         console.log("Error occurred while connecting:", error);
